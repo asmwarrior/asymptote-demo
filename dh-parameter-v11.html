@@ -15022,23 +15022,32 @@ initTransform();
 beginTransform(
 function(x, t) {
     var a = 3, d = 3.50000000000001, theta = 0.698131700797732, alpha = -0.349065850398866;
-    var k1 = Math.min(Math.max(t / 0.25, 0), 1), k2 = Math.min(Math.max((t - 0.25) / 0.25, 0), 1), 
-        k3 = Math.min(Math.max((t - 0.5) / 0.25, 0), 1), k4 = Math.min(Math.max((t - 0.75) / 0.25, 0), 1);
+    
+    var k1 = Math.min(Math.max(t / 0.25, 0), 1),
+        k2 = Math.min(Math.max((t - 0.25) / 0.25, 0), 1),
+        k3 = Math.min(Math.max((t - 0.5) / 0.25, 0), 1),
+        k4 = Math.min(Math.max((t - 0.75) / 0.25, 0), 1);
 
-    // Modified DH Order: Rx(alpha) * Tx(a) * Rz(theta) * Tz(d)
+    // Modified DH sequence: Rx(alpha) * Tx(a) * Rz(theta) * Tz(d)
     var ca = Math.cos(alpha*k1), sa = Math.sin(alpha*k1);
     var Mx = [1,0,0,0, 0,ca,-sa,0, 0,sa,ca,0, 0,0,0,1];
+
     var Ma = [1,0,0,a*k2, 0,1,0,0, 0,0,1,0, 0,0,0,1];
+
     var ct = Math.cos(theta*k3), st = Math.sin(theta*k3);
     var Mz = [ct,-st,0,0, st,ct,0,0, 0,0,1,0, 0,0,0,1];
+
     var Md = [1,0,0,0, 0,1,0,0, 0,0,1,d*k4, 0,0,0,1];
 
     var M = mult(Mx, mult(Ma, mult(Mz, Md)));
+
     var lx = M[0]*x[0] + M[1]*x[1] + M[2]*x[2] + M[3];
     var ly = M[4]*x[0] + M[5]*x[1] + M[6]*x[2] + M[7];
     var lz = M[8]*x[0] + M[9]*x[1] + M[10]*x[2] + M[11];
 
-    return [m[0]*lx+m[1]*ly+m[2]*lz+m[3], m[4]*lx+m[5]*ly+m[6]*lz+m[7], m[8]*lx+m[9]*ly+m[10]*lz+m[11]];
+    return [m[0]*lx+m[1]*ly+m[2]*lz+m[3],
+            m[4]*lx+m[5]*ly+m[6]*lz+m[7],
+            m[8]*lx+m[9]*ly+m[10]*lz+m[11]];
 }
 ,null,10);
 cylinder([-150.7082,-29.74101,-988.733],0.5977584,31.80877,0,3,
