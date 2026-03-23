@@ -272,7 +272,20 @@ endTransform();
 
 // UI slider style
 javascript("
-let style=document.createElement('style');
-style.textContent='.slider{width:80%!important;left:10%!important;bottom:20px;}';
+let style = document.createElement('style');
+style.textContent = '.slider { width:80%!important; left:10%!important; bottom:20px; }';
 document.head.appendChild(style);
+
+window.addEventListener('load', function() {
+    setTimeout(function() {
+        document.dispatchEvent(new KeyboardEvent('keydown', {
+            key: 'b',
+            code: 'KeyB',
+            keyCode: 66,
+            which: 66,
+            bubbles: true
+        }));
+    }, 600);
+});
+
 ");
