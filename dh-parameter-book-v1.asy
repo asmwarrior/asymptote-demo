@@ -14,7 +14,7 @@ size(12cm);
 // true  -> Modified DH (Proximal)
 // false -> Standard DH (Distal)
 //----------------------------
-bool isModified = true;
+bool isModified = false;
 
 //----------------------------
 // Data structures
@@ -209,24 +209,26 @@ if (isModified) {
     draw(fp2.prev.O -- fp2.next.O, linePen);
 
     // alpha
-    // alpha_{i-1} (rotation about x_{i-1})
-    triple O_alpha = baseFrame.O;
+    {
+        // alpha_{i-1} (rotation about x_{i-1})
+        triple O_alpha = baseFrame.O;
 
-    triple v1 = unit(baseFrame.z);
-    triple v2 = unit(targetFrame.z);
+        triple v1 = unit(baseFrame.z);
+        triple v2 = unit(targetFrame.z);
 
-    // reference lines
-    draw(O_alpha -- (O_alpha + axis_len*v1), linePen);
-    draw(O_alpha -- (O_alpha + axis_len*v2), linePen);
+        // reference lines
+        draw(O_alpha -- (O_alpha + axis_len*v1), linePen);
+        draw(O_alpha -- (O_alpha + axis_len*v2), linePen);
 
-    // arc with arrow
-    real r = 0.8;
-    draw(arc(O_alpha, O_alpha + r*v1, O_alpha + r*v2),
-         ArcArrow3(3));
+        // arc with arrow
+        real r = 0.8;
+        draw(arc(O_alpha, O_alpha + r*v1, O_alpha + r*v2),
+             ArcArrow3(3));
 
-    // label on angle bisector
-    triple bisector = unit(v1 + v2);
-    label("$\alpha_{i-1}$", O_alpha + 1.2*r*bisector, N);
+        // label on angle bisector
+        triple bisector = unit(v1 + v2);
+        label("$\alpha_{i-1}$", O_alpha + 1.2*r*bisector, N);
+    }
 
     // a
     draw(baseFrame.O -- fp1.next.O, distPen, Arrow3(6));
@@ -234,24 +236,24 @@ if (isModified) {
 
     // theta
     {
-    // theta_i (rotation about z_i)
-    triple O_theta = fp1.next.O;
+        // theta_i (rotation about z_i)
+        triple O_theta = fp1.next.O;
 
-    triple v1 = unit(baseFrame.x);
-    triple v2 = unit(targetFrame.x);
+        triple v1 = unit(baseFrame.x);
+        triple v2 = unit(targetFrame.x);
 
-    // reference lines
-    draw(O_theta -- (O_theta + axis_len*v1), linePen);
-    draw(O_theta -- (O_theta + axis_len*v2), linePen);
+        // reference lines
+        draw(O_theta -- (O_theta + axis_len*v1), linePen);
+        draw(O_theta -- (O_theta + axis_len*v2), linePen);
 
-    // arc with arrow
-    real r = 0.8;
-    draw(arc(O_theta, O_theta + r*v1, O_theta + r*v2),
-         ArcArrow3(3));
+        // arc with arrow
+        real r = 0.8;
+        draw(arc(O_theta, O_theta + r*v1, O_theta + r*v2),
+             ArcArrow3(3));
 
-    // label on angle bisector
-    triple bisector = unit(v1 + v2);
-    label("$\theta_i$", O_theta + 1.2*r*bisector, N);
+        // label on angle bisector
+        triple bisector = unit(v1 + v2);
+        label("$\theta_i$", O_theta + 1.2*r*bisector, N);
     }
 
     // d
@@ -270,22 +272,22 @@ if (isModified) {
 
     // theta
     {
-    triple O_theta = fp2.prev.O;
+        triple O_theta = fp2.prev.O;
 
-    triple v1 = unit(baseFrame.x);
-    triple v2 = unit(targetFrame.x);
+        triple v1 = unit(baseFrame.x);
+        triple v2 = unit(targetFrame.x);
 
-    // draw edge lines of the angle
-    draw(O_theta -- (O_theta + axis_len*v1), linePen);
-    draw(O_theta -- (O_theta + axis_len*v2), linePen);
+        // draw edge lines of the angle
+        draw(O_theta -- (O_theta + axis_len*v1), linePen);
+        draw(O_theta -- (O_theta + axis_len*v2), linePen);
 
-    // draw arc with array
-    real r = 0.8; // arc radius
-    draw(arc(O_theta, O_theta + r*v1, O_theta + r*v2),
-         ArcArrow3(3));
+        // draw arc with array
+        real r = 0.8; // arc radius
+        draw(arc(O_theta, O_theta + r*v1, O_theta + r*v2),
+             ArcArrow3(3));
 
-    // label in the middle of the arc
-    label("$\theta_i$", O_theta + r*unit(v1 + v2), N);
+        // label in the middle of the arc
+        label("$\theta_i$", O_theta + r*unit(v1 + v2), N);
     }
 
     // a
@@ -294,23 +296,23 @@ if (isModified) {
 
     // alpha (rotation about x axis)
     {
-    triple O_alpha = targetFrame.O;
+        triple O_alpha = targetFrame.O;
 
-    triple v1 = unit(baseFrame.z);
-    triple v2 = unit(targetFrame.z);
+        triple v1 = unit(baseFrame.z);
+        triple v2 = unit(targetFrame.z);
 
-    // reference lines
-    draw(O_alpha -- (O_alpha + axis_len*v1), linePen);
-    draw(O_alpha -- (O_alpha + axis_len*v2), linePen);
+        // reference lines
+        draw(O_alpha -- (O_alpha + axis_len*v1), linePen);
+        draw(O_alpha -- (O_alpha + axis_len*v2), linePen);
 
-    // arc with arrow
-    real r = 0.8;
-    draw(arc(O_alpha, O_alpha + r*v1, O_alpha + r*v2),
-         ArcArrow3(6));
+        // arc with arrow
+        real r = 0.8;
+        draw(arc(O_alpha, O_alpha + r*v1, O_alpha + r*v2),
+             ArcArrow3(3));
 
-    // label (placed along angle bisector)
-    triple bisector = unit(v1 + v2);
-    label("$\alpha_i$", O_alpha + 1.2*r*bisector, E);
+        // label (placed along angle bisector)
+        triple bisector = unit(v1 + v2);
+        label("$\alpha_i$", O_alpha + 1.2*r*bisector, E);
     }
 }//----------------------------
 // Animation system (JavaScript-based transform)
