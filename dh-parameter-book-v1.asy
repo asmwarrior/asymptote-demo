@@ -14,7 +14,7 @@ size(12cm);
 // true  -> Modified DH (Proximal)
 // false -> Standard DH (Distal)
 //----------------------------
-bool isModified = false; 
+bool isModified = false;
 
 //----------------------------
 // Data structures
@@ -96,7 +96,7 @@ FramePair ComputeFrame(transform3 TPrev, transform3 TNext) {
         real t = dot(p2 - p1, z_prev);
         footPrev = p1 + t * z_prev;
         footNext = p2;
-    } 
+    }
     // Skew lines case
     else {
         real[][] A = {
@@ -142,7 +142,7 @@ DHParam ExtractDH(CoordFrame prev, CoordFrame next, bool isModified) {
         dh.d     = dot(dp, prev.z);
         dh.a     = dot(dp, next.x);
         dh.alpha = atan2(dot(cross(prev.z,next.z), next.x), dot(prev.z,next.z));
-    } 
+    }
     else { // Modified DH
         dh.theta = atan2(dot(cross(prev.x,next.x), next.z), dot(prev.x,next.x));
         dh.d     = dot(dp, next.z);
@@ -167,7 +167,7 @@ FramePair fp1 = ComputeFrame(t1, t2);
 FramePair fp2 = ComputeFrame(t2, t3);
 
 // Select base and target frames depending on DH convention
-CoordFrame baseFrame   = isModified ? fp1.prev : fp1.next; 
+CoordFrame baseFrame   = isModified ? fp1.prev : fp1.next;
 CoordFrame targetFrame = isModified ? fp2.prev : fp2.next;
 
 // Draw frames
@@ -233,21 +233,53 @@ if (isModified) {
 
     // d
     draw(baseFrame.O -- fp2.prev.O, distPen, Arrow3(6));
-    label("$d_i$", midpoint(baseFrame.O--fp2.prev.O), W);
+
+    label("$d_i$", relpoint(baseFrame.O--fp2.prev.O, 0.9), W);
 
     // theta
-    draw(fp2.prev.O -- (fp2.prev.O + axis_len*baseFrame.x), linePen);
-    draw(fp2.prev.O -- (fp2.prev.O + axis_len*targetFrame.x), linePen);
-    label("$\theta_i$", fp2.prev.O + 0.6*axis_len*(baseFrame.x + targetFrame.x), N);
+    {
+    triple O_theta = fp2.prev.O;
+
+    triple v1 = unit(baseFrame.x);
+    triple v2 = unit(targetFrame.x);
+
+    // draw edge lines of the angle
+    draw(O_theta -- (O_theta + axis_len*v1), linePen);
+    draw(O_theta -- (O_theta + axis_len*v2), linePen);
+
+    // draw arc with array
+    real r = 0.8; // arc radius
+    draw(arc(O_theta, O_theta + r*v1, O_theta + r*v2),
+         ArcArrow3(3));
+
+    // label in the middle of the arc
+    label("$\theta_i$", O_theta + r*unit(v1 + v2), N);
+    }
 
     // a
     draw(fp2.prev.O -- targetFrame.O, distPen, Arrow3(6));
     label("$a_i$", midpoint(fp2.prev.O--targetFrame.O), S);
 
-    // alpha
-    draw(targetFrame.O -- (targetFrame.O + axis_len*baseFrame.z), linePen);
-    draw(targetFrame.O -- (targetFrame.O + axis_len*targetFrame.z), linePen);
-    label("$\alpha_i$", targetFrame.O + 0.6*axis_len*(baseFrame.z + targetFrame.z), E);
+    // alpha (rotation about x axis)
+    {
+    triple O_alpha = targetFrame.O;
+
+    triple v1 = unit(baseFrame.z);
+    triple v2 = unit(targetFrame.z);
+
+    // reference lines
+    draw(O_alpha -- (O_alpha + axis_len*v1), linePen);
+    draw(O_alpha -- (O_alpha + axis_len*v2), linePen);
+
+    // arc with arrow
+    real r = 0.8;
+    draw(arc(O_alpha, O_alpha + r*v1, O_alpha + r*v2),
+         ArcArrow3(6));
+
+    // label (placed along angle bisector)
+    triple bisector = unit(v1 + v2);
+    label("$\alpha_i$", O_alpha + 1.2*r*bisector, E);
+    }
 }//----------------------------
 // Animation system (JavaScript-based transform)
 //----------------------------
