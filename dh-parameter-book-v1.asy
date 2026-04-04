@@ -14,7 +14,7 @@ size(12cm);
 // true  -> Modified DH (Proximal)
 // false -> Standard DH (Distal)
 //----------------------------
-bool isModified = false;
+bool isModified = true;
 
 //----------------------------
 // Data structures
@@ -206,25 +206,57 @@ pen distPen = orange + linewidth(1.2pt);
 if (isModified) {
     // Modified DH: (alpha_{i-1}, a_{i-1}, theta_i, d_i)
 
-    draw(fp1.prev.O -- fp1.next.O, linePen);
+    draw(fp2.prev.O -- fp2.next.O, linePen);
 
     // alpha
-    draw(baseFrame.O -- (baseFrame.O + axis_len*baseFrame.z), linePen);
-    draw(baseFrame.O -- (baseFrame.O + axis_len*targetFrame.z), linePen);
-    label("$\alpha_{i-1}$", baseFrame.O + 0.6*axis_len*(baseFrame.z + targetFrame.z), N);
+    // alpha_{i-1} (rotation about x_{i-1})
+    triple O_alpha = baseFrame.O;
+
+    triple v1 = unit(baseFrame.z);
+    triple v2 = unit(targetFrame.z);
+
+    // reference lines
+    draw(O_alpha -- (O_alpha + axis_len*v1), linePen);
+    draw(O_alpha -- (O_alpha + axis_len*v2), linePen);
+
+    // arc with arrow
+    real r = 0.8;
+    draw(arc(O_alpha, O_alpha + r*v1, O_alpha + r*v2),
+         ArcArrow3(3));
+
+    // label on angle bisector
+    triple bisector = unit(v1 + v2);
+    label("$\alpha_{i-1}$", O_alpha + 1.2*r*bisector, N);
 
     // a
     draw(baseFrame.O -- fp1.next.O, distPen, Arrow3(6));
     label("$a_{i-1}$", midpoint(baseFrame.O--fp1.next.O), S);
 
     // theta
-    draw(fp1.next.O -- (fp1.next.O + axis_len*baseFrame.x), linePen);
-    draw(fp1.next.O -- (fp1.next.O + axis_len*targetFrame.x), linePen);
-    label("$\theta_i$", fp1.next.O + 0.6*axis_len*(baseFrame.x + targetFrame.x), N);
+    {
+    // theta_i (rotation about z_i)
+    triple O_theta = fp1.next.O;
+
+    triple v1 = unit(baseFrame.x);
+    triple v2 = unit(targetFrame.x);
+
+    // reference lines
+    draw(O_theta -- (O_theta + axis_len*v1), linePen);
+    draw(O_theta -- (O_theta + axis_len*v2), linePen);
+
+    // arc with arrow
+    real r = 0.8;
+    draw(arc(O_theta, O_theta + r*v1, O_theta + r*v2),
+         ArcArrow3(3));
+
+    // label on angle bisector
+    triple bisector = unit(v1 + v2);
+    label("$\theta_i$", O_theta + 1.2*r*bisector, N);
+    }
 
     // d
     draw(fp1.next.O -- targetFrame.O, distPen, Arrow3(6));
-    label("$d_i$", midpoint(fp2.prev.O--targetFrame.O), E);
+    label("$d_i$", relpoint(fp1.next.O--targetFrame.O, 0.9), E);
 
 } else {
     // Standard DH: (d_i, theta_i, a_i, alpha_i)
