@@ -425,12 +425,57 @@ exportToJS("L1_OFFSET", L1);
 exportToJS("L2_OFFSET", L2);
 
 
+//---------------------------------------------------
+// UI
+//---------------------------------------------------
 javascript("
+let style=document.createElement('style');
+style.textContent=`
+.slider {
+    width: 85% !important;
+    left: 7.5% !important;
+    bottom: 25px;
+    height: 28px !important;   /* makes control area thicker */
+}
+
+/* WebKit slider track (Chrome, Safari, mobile) */
+.slider input[type=range]::-webkit-slider-runnable-track {
+    height: 10px;
+    border-radius: 5px;
+}
+
+/* slider thumb */
+.slider input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 22px;
+    width: 22px;
+    border-radius: 50%;
+    margin-top: -6px;
+}
+
+/* Firefox support */
+.slider input[type=range]::-moz-range-track {
+    height: 10px;
+    border-radius: 5px;
+}
+
+.slider input[type=range]::-moz-range-thumb {
+    height: 22px;
+    width: 22px;
+    border-radius: 50%;
+}
+`;
+document.head.appendChild(style);
+
 window.addEventListener('load',function(){
     setTimeout(function(){
-        document.dispatchEvent(
-            new KeyboardEvent('keydown',{key:'b'})
-        );
+        document.dispatchEvent(new KeyboardEvent('keydown',{
+            key:'b',
+            code:'KeyB',
+            keyCode:66,
+            which:66,
+            bubbles:true
+        }));
     },500);
 });
 ");

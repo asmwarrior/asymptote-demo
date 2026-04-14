@@ -2,14 +2,14 @@
 
 <!-- Use the following line to embed this file within another web page:
 
-<iframe src="j1-v4-RRP.html" width="285" height="203" frameborder="0"></iframe>
+<iframe src="RRP-robot-v1.html" width="285" height="203" frameborder="0"></iframe>
 
 -->
 
 <html lang="">
 
 <head>
-<title>j1-v4-RRP</title>
+<title>RRP-robot-v1</title>
 
 <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
 <meta name="viewport" content="user-scalable=no"/>
@@ -1800,11 +1800,53 @@ endTransform();
 endTransform();
 
 window.L0_OFFSET = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];window.L1_OFFSET = [1,0,0,0,0,0,-1,0,0,1,0,0,0,0,2,1];window.L2_OFFSET = [0,0,-1,0,0.5,0.866025403784439,0,0,0.866025403784439,-0.5,0,0,1.03923048454133,-0.6,0,1];
+let style=document.createElement('style');
+style.textContent=`
+.slider {
+    width: 85% !important;
+    left: 7.5% !important;
+    bottom: 25px;
+    height: 28px !important;   /* makes control area thicker */
+}
+
+/* WebKit slider track (Chrome, Safari, mobile) */
+.slider input[type=range]::-webkit-slider-runnable-track {
+    height: 10px;
+    border-radius: 5px;
+}
+
+/* slider thumb */
+.slider input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 22px;
+    width: 22px;
+    border-radius: 50%;
+    margin-top: -6px;
+}
+
+/* Firefox support */
+.slider input[type=range]::-moz-range-track {
+    height: 10px;
+    border-radius: 5px;
+}
+
+.slider input[type=range]::-moz-range-thumb {
+    height: 22px;
+    width: 22px;
+    border-radius: 50%;
+}
+`;
+document.head.appendChild(style);
+
 window.addEventListener('load',function(){
     setTimeout(function(){
-        document.dispatchEvent(
-            new KeyboardEvent('keydown',{key:'b'})
-        );
+        document.dispatchEvent(new KeyboardEvent('keydown',{
+            key:'b',
+            code:'KeyB',
+            keyCode:66,
+            which:66,
+            bubbles:true
+        }));
     },500);
 });
 </script>
