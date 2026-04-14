@@ -113,12 +113,12 @@ function phase(t, t0, t1) {
 
 // Dynamic Joint 1
 window.J1 = function(p, t) {
-    
+
     let t1 = phase(t, 0.0, 0.33);  // only active in first third
 
     let angle = 120 * t1 * Math.PI/180;   // reduced from 90 → 120
     let cosA = Math.cos(angle), sinA = Math.sin(angle);
-    
+
     // Dynamic Rotation Matrix for Joint 1 (Z-axis)
     let J1_MOTION = [
         cosA, sinA, 0, 0,
@@ -138,7 +138,7 @@ window.J2 = function(p, t) {
 
     let angle = 45 * t2 * Math.PI/180;  // reduced angle
     let cosA = Math.cos(angle), sinA = Math.sin(angle);
-    
+
     // Dynamic Rotation Matrix for Joint 2 (Z-axis)
     let J2_MOTION = [
         cosA, sinA, 0, 0,
@@ -170,7 +170,7 @@ window.J3 = function(p, t) {
     // 3. Combine: Total = Motion * Static Link Offset (L3_OFFSET)
     // This places the moving prismatic part relative to the end of Link 2.
     let T_final = multiply(window.L2_OFFSET, J3_MOTION);
-    
+
     return apply(T_final, p);
 };
 
@@ -1800,54 +1800,61 @@ endTransform();
 endTransform();
 
 window.L0_OFFSET = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];window.L1_OFFSET = [1,0,0,0,0,0,-1,0,0,1,0,0,0,0,2,1];window.L2_OFFSET = [0,0,-1,0,0.5,0.866025403784439,0,0,0.866025403784439,-0.5,0,0,1.03923048454133,-0.6,0,1];
-let style=document.createElement('style');
-style.textContent=`
-.slider {
-    width: 85% !important;
-    left: 7.5% !important;
-    bottom: 25px;
-    height: 28px !important;   /* makes control area thicker */
-}
-
-/* WebKit slider track (Chrome, Safari, mobile) */
-.slider input[type=range]::-webkit-slider-runnable-track {
-    height: 10px;
-    border-radius: 5px;
-}
-
-/* slider thumb */
-.slider input[type=range]::-webkit-slider-thumb {
+let style = document.createElement('style');
+style.textContent = `
+  /* 1. Direct target of the slider element */
+  .slider {
     -webkit-appearance: none;
-    height: 22px;
-    width: 22px;
-    border-radius: 50%;
-    margin-top: -6px;
-}
+    width: 80% !important;
+    left: 10% !important;
+    bottom: 5vh !important;    /* Positioned relative to viewport height */
+    height: 6vh !important;    /* Control area size for touch input */
+    background: transparent !important;
+    cursor: pointer;
+    position: absolute;
+    z-index: 1000;
+  }
 
-/* Firefox support */
-.slider input[type=range]::-moz-range-track {
-    height: 10px;
-    border-radius: 5px;
-}
+  /* 2. Responsive Track */
+  .slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 1.5vh !important;
+    background: #ddd !important;
+    border-radius: 0.75vh;
+    border: 1px solid #bbb;
+  }
 
-.slider input[type=range]::-moz-range-thumb {
-    height: 22px;
-    width: 22px;
+  /* 3. Responsive Thumb (Knob) */
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 4.5vh !important;
+    width: 4.5vh !important;
     border-radius: 50%;
-}
+    background: #4CAF50 !important;
+    /* Vertical centering: (1.5vh / 2) - (4.5vh / 2) = -1.5vh */
+    margin-top: -1.5vh !important;
+    box-shadow: 0 0.5vh 1vh rgba(0,0,0,0.3);
+    border: 0.3vh solid white;
+  }
+
+  /* Firefox Compatibility */
+  .slider::-moz-range-track { height: 1.5vh; border-radius: 0.75vh; background: #ddd; }
+  .slider::-moz-range-thumb { height: 4.5vh; width: 4.5vh; background: #4CAF50; border-radius: 50%; border: 0.3vh solid white; }
 `;
 document.head.appendChild(style);
 
-window.addEventListener('load',function(){
+// 4. Auto-play Logic
+window.addEventListener('load', function(){
     setTimeout(function(){
-        document.dispatchEvent(new KeyboardEvent('keydown',{
-            key:'b',
-            code:'KeyB',
-            keyCode:66,
-            which:66,
-            bubbles:true
+        // Dispatches the 'b' key event to toggle the Loop mode in Asymptote's WebGL player
+        document.dispatchEvent(new KeyboardEvent('keydown', {
+            key: 'b',
+            code: 'KeyB',
+            keyCode: 66,
+            which: 66,
+            bubbles: true
         }));
-    },500);
+    }, 500); // 500ms delay to ensure the player is ready
 });
 </script>
 </head>

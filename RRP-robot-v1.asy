@@ -9,11 +9,11 @@ currentprojection=perspective(camera=(6,6,4), target=(0,0,0));
 
 
 currentlight = light(
-    background=white, 
+    background=white,
     // Three diffuse pens for three positions
-    diffuse=new pen[] {gray(0.8), gray(0.8), gray(0.7)}, 
+    diffuse=new pen[] {gray(0.8), gray(0.8), gray(0.7)},
     // Three specular pens for three positions
-    specular=new pen[] {gray(0.1), gray(0.1), gray(0.1)}, 
+    specular=new pen[] {gray(0.1), gray(0.1), gray(0.1)},
     // Three positions: Camera, Fill-left, Top-down
     position=new triple[] {currentprojection.camera, (-5,-5,5), (0,0,10)}
 );
@@ -112,7 +112,7 @@ void joint_r2_f(transform3 T)
     // bottom cap (filled)
     draw(surface(circle(T*(0,0,-H/2), R, axis)), surfacepen);
     draw(circle(T*(0,0,-H/2), R, axis), edgepen);
-    
+
     // axis
     // draw(T*O -- T*(0.5*Z), blue+linewidth(1.2), Arrow3);
 
@@ -271,12 +271,12 @@ function phase(t, t0, t1) {
 
 // Dynamic Joint 1
 window.J1 = function(p, t) {
-    
+
     let t1 = phase(t, 0.0, 0.33);  // only active in first third
 
     let angle = 120 * t1 * Math.PI/180;   // reduced from 90 → 120
     let cosA = Math.cos(angle), sinA = Math.sin(angle);
-    
+
     // Dynamic Rotation Matrix for Joint 1 (Z-axis)
     let J1_MOTION = [
         cosA, sinA, 0, 0,
@@ -296,7 +296,7 @@ window.J2 = function(p, t) {
 
     let angle = 45 * t2 * Math.PI/180;  // reduced angle
     let cosA = Math.cos(angle), sinA = Math.sin(angle);
-    
+
     // Dynamic Rotation Matrix for Joint 2 (Z-axis)
     let J2_MOTION = [
         cosA, sinA, 0, 0,
@@ -328,7 +328,7 @@ window.J3 = function(p, t) {
     // 3. Combine: Total = Motion * Static Link Offset (L3_OFFSET)
     // This places the moving prismatic part relative to the end of Link 2.
     let T_final = multiply(window.L2_OFFSET, J3_MOTION);
-    
+
     return apply(T_final, p);
 };
 
@@ -386,7 +386,7 @@ beginTransform("function(x,t){ return J1(x,t); }", 10);
     // finally, if the J2(x,t) function defined a T_1_2 matrix
     // we must apply the T_1_2 * L1 to all the verteics in the below beginTransform/endTransform block
     transform3 L1 = L1_c;
-    
+
     beginTransform("function(x,t){ return J2(x,t); }", 10);
 
         transform3 L2_a = joint_r2_m(I, -30);
@@ -397,14 +397,14 @@ beginTransform("function(x,t){ return J1(x,t); }", 10);
         draw(p3--p4, linewidth(2));
 
         joint_p_f(L2_b);
-        
+
         // we must save the L2
         // finally, if the J3(x,t) function defined a T_2_3 matrix
         // we must apply the T_2_3 * L2 to all the verteics in the below beginTransform/endTransform block
         transform3 L2 = L2_b;
 
        beginTransform("function(x,t){ return J3(x,t); }", 10);
-            
+
             transform3 L3_a = joint_p_m(I, 0.1);
             triple p5 = L3_a*O;
             transform3 L3_b = L3_a*shift(0,0,L3_Len);
@@ -426,57 +426,64 @@ exportToJS("L2_OFFSET", L2);
 
 
 //---------------------------------------------------
-// UI
+// Responsive UI with Auto-Loop Trigger
 //---------------------------------------------------
 javascript("
-let style=document.createElement('style');
-style.textContent=`
-.slider {
-    width: 85% !important;
-    left: 7.5% !important;
-    bottom: 25px;
-    height: 28px !important;   /* makes control area thicker */
-}
-
-/* WebKit slider track (Chrome, Safari, mobile) */
-.slider input[type=range]::-webkit-slider-runnable-track {
-    height: 10px;
-    border-radius: 5px;
-}
-
-/* slider thumb */
-.slider input[type=range]::-webkit-slider-thumb {
+let style = document.createElement('style');
+style.textContent = `
+  /* 1. Direct target of the slider element */
+  .slider {
     -webkit-appearance: none;
-    height: 22px;
-    width: 22px;
-    border-radius: 50%;
-    margin-top: -6px;
-}
+    width: 80% !important;
+    left: 10% !important;
+    bottom: 5vh !important;    /* Positioned relative to viewport height */
+    height: 6vh !important;    /* Control area size for touch input */
+    background: transparent !important;
+    cursor: pointer;
+    position: absolute;
+    z-index: 1000;
+  }
 
-/* Firefox support */
-.slider input[type=range]::-moz-range-track {
-    height: 10px;
-    border-radius: 5px;
-}
+  /* 2. Responsive Track */
+  .slider::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 1.5vh !important;
+    background: #ddd !important;
+    border-radius: 0.75vh;
+    border: 1px solid #bbb;
+  }
 
-.slider input[type=range]::-moz-range-thumb {
-    height: 22px;
-    width: 22px;
+  /* 3. Responsive Thumb (Knob) */
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 4.5vh !important;
+    width: 4.5vh !important;
     border-radius: 50%;
-}
+    background: #4CAF50 !important;
+    /* Vertical centering: (1.5vh / 2) - (4.5vh / 2) = -1.5vh */
+    margin-top: -1.5vh !important;
+    box-shadow: 0 0.5vh 1vh rgba(0,0,0,0.3);
+    border: 0.3vh solid white;
+  }
+
+  /* Firefox Compatibility */
+  .slider::-moz-range-track { height: 1.5vh; border-radius: 0.75vh; background: #ddd; }
+  .slider::-moz-range-thumb { height: 4.5vh; width: 4.5vh; background: #4CAF50; border-radius: 50%; border: 0.3vh solid white; }
 `;
 document.head.appendChild(style);
 
-window.addEventListener('load',function(){
+// 4. Auto-play Logic
+window.addEventListener('load', function(){
     setTimeout(function(){
-        document.dispatchEvent(new KeyboardEvent('keydown',{
-            key:'b',
-            code:'KeyB',
-            keyCode:66,
-            which:66,
-            bubbles:true
+        // Dispatches the 'b' key event to toggle the Loop mode in Asymptote's WebGL player
+        document.dispatchEvent(new KeyboardEvent('keydown', {
+            key: 'b',
+            code: 'KeyB',
+            keyCode: 66,
+            which: 66,
+            bubbles: true
         }));
-    },500);
+    }, 500); // 500ms delay to ensure the player is ready
 });
 ");
 
