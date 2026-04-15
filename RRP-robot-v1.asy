@@ -355,6 +355,18 @@ draw(O--X, red, Arrow3);
 draw(O--Y, green, Arrow3);
 draw(O--Z, blue, Arrow3);
 
+// ===============================
+// World frame labels with alignment
+// ===============================
+// "E" (East) pushes the text to the right of the point 1.1*X
+label("$x$", 1.1*X, N, red);
+
+// "N" (North) pushes the text above the point 1.1*Y
+label("$y$", 1.1*Y, N, green);
+
+// "Z" usually looks best with a "top" or "North" alignment
+label("$z$", 1.0*Z, E, blue);
+
 // Planes
 pen bg=gray(0.9);
 real r = 2.5;
@@ -417,6 +429,9 @@ beginTransform("function(x,t){ return J1(x,t); }", 10);
 
 endTransform();
 
+// ==========================================
+// Static 2D Overlay (Title and Credits)
+// ==========================================
 
 
 // After you calculate your L-variables in the script:
@@ -484,6 +499,46 @@ window.addEventListener('load', function(){
             bubbles: true
         }));
     }, 500); // 500ms delay to ensure the player is ready
+
+    // ----------------------
+    // Title (Top Center)
+    // ----------------------
+    let title = document.createElement('div');
+    title.innerHTML = '<b>RRP Three-Joint Robot Arm</b>';
+
+    title.style.position = 'absolute';
+    title.style.top = '10px';
+    title.style.left = '50%';
+    title.style.transform = 'translateX(-50%)';
+
+    title.style.fontSize = '20px';
+    title.style.fontFamily = 'Arial, sans-serif';
+    title.style.color = 'black';
+    title.style.zIndex = '2000';
+    title.style.pointerEvents = 'none';
+
+    document.body.appendChild(title);
+
+    // ----------------------
+    // Footer (Bottom Right)
+    // ----------------------
+    let credit = document.createElement('div');
+    credit.innerHTML = 'Powered by <tt>Asymptote</tt> & <tt>WebGL</tt>';
+
+    credit.style.position = 'absolute';
+    credit.style.bottom = '10px';
+    credit.style.right = '15px';
+
+    credit.style.fontSize = '12px';
+    credit.style.fontFamily = 'Arial, sans-serif';
+    credit.style.color = 'darkblue';
+    credit.style.zIndex = '2000';
+    credit.style.pointerEvents = 'none';
+
+    document.body.appendChild(credit);
+
+
+
 });
 ");
 
