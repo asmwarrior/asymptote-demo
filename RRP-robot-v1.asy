@@ -402,8 +402,9 @@ beginTransform("function(x,t){ return J1(x,t); }", 10);
     beginTransform("function(x,t){ return J2(x,t); }", 10);
 
         transform3 L2_a = joint_r2_m(I, -30);
-
-        triple p3 = L2_a*O;
+        // draw the Link 2, note the radius of the rotating frame is 0.4, which is defined in the joint_r2_m
+        // so we only need to start from the (0,0,0.4), not the (0,0,0)
+        triple p3 = L2_a*(0,0,0.4);
         transform3 L2_b = L2_a*shift(0,0,L2_Len);
         triple p4 = L2_b*O;
         draw(p3--p4, linewidth(2));
