@@ -230,7 +230,23 @@ void draw_gripper_simple(transform3 T)
     draw(T*left_base -- T*right_base, p);
 }
 
+void attach_coordinates(transform3 T, real length=2)
+{
+    // axes
+    draw(T*scale3(length)*(O--X), red, Arrow3(size=10));
+    draw(T*scale3(length)*(O--Y), green, Arrow3(size=10));
+    draw(T*scale3(length)*(O--Z), blue, Arrow3(size=10));
 
+    // label positions (apply SAME transform!)
+    triple px = T*scale3(length)*(1.2*X);
+    triple py = T*scale3(length)*(1.2*Y);
+    triple pz = T*scale3(length)*(1.2*Z);
+
+    // 使用变换后的坐标轴方向作为对齐方向
+    label("$x$", px, T*X, red);
+    label("$y$", py, T*Y, green);
+    label("$z$", pz, T*Z, blue);
+}
 
 javascript("
 // Standard Column-Major Matrix Multiply: C = A * B
@@ -424,6 +440,7 @@ beginTransform("function(x,t){ return J1(x,t); }", 10);
             triple p6 = L3_b*O;
             draw(p5--p6, linewidth(2));
             draw_gripper_simple(L3_b);
+            attach_coordinates(L3_b, 0.5);
         endTransform();
 
     endTransform();
