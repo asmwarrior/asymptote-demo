@@ -18,19 +18,12 @@ currentlight = light(
     position=new triple[] {currentprojection.camera, (-5,-5,5), (0,0,10)}
 );
 
-
-
-
-
 // ===============================
 // Parameters
 // ===============================
 real L1_Len = 2;
 real L2_Len = 1.2;
 real L3_Len = 0.7;
-
-
-
 
 // ===============================
 // Fixed part (base)
