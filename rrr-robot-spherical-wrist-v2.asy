@@ -33,10 +33,14 @@ real L3_Len = 2;
 // JAVASCRIPT BRIDGE (Modified for Individual Sliders)
 // =========================================================
 javascript("
+// ===============================
 // 1. Storage for joint angles
+// ===============================
 window.jointStates = { q1: 0, q2: 0, q3: 0 };
 
+// ===============================
 // 2. Matrix Math Helpers
+// ===============================
 function multiply(A, B) {
     let C = new Array(16).fill(0);
     for (let col = 0; col < 4; col++) {
@@ -63,7 +67,9 @@ function getRotationZ(deg) {
     return [c, s, 0, 0, -s, c, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 }
 
-// 3. Transformation Functions (Now ignoring 't')
+// ===============================
+// 3. Transform Functions
+// ===============================
 window.J1 = function(p, t) {
     if(!window.L0_OFFSET) return p;
     return apply(multiply(window.L0_OFFSET, getRotationZ(window.jointStates.q1)), p);
@@ -79,33 +85,130 @@ window.J3 = function(p, t) {
     return apply(multiply(window.L2_OFFSET, getRotationZ(window.jointStates.q3)), p);
 };
 
-// 4. Custom UI Setup
+// ===============================
+// 4. UI + Responsive Styling
+// ===============================
 window.addEventListener('load', function(){
-    // Hide built-in player controls
+
+    // Hide default controls
+    let hide = document.createElement('style');
+    hide.textContent = '.asy-player-controls, #asy-slider { display: none !important; }';
+    document.head.appendChild(hide);
+
+    // ----------------------
+    // Responsive Slider CSS
+    // ----------------------
     let style = document.createElement('style');
-    style.textContent = '.asy-player-controls, #asy-slider { display: none !important; }';
+    style.textContent = `
+    #control-panel {
+        width: min(300px, 80vw);
+    }
+
+    .control-slider {
+        width: 100%;
+        height: 4vh;
+    }
+
+    .control-slider::-webkit-slider-runnable-track {
+        height: 1.2vh;
+        background: #ddd;
+        border-radius: 0.6vh;
+    }
+
+    .control-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 4vh;
+        height: 4vh;
+        margin-top: -1.4vh;
+        border-radius: 50%;
+        background: #4CAF50;
+    }
+
+    .control-slider::-moz-range-track { height: 1.2vh; background: #ddd; }
+    .control-slider::-moz-range-thumb {
+        width: 4vh;
+        height: 4vh;
+        border-radius: 50%;
+        background: #4CAF50;
+    }
+    `;
     document.head.appendChild(style);
 
+    // ----------------------
+    // Control Panel
+    // ----------------------
     let panel = document.createElement('div');
-    panel.style.cssText = 'position:fixed;top:20px;left:20px;z-index:9999;background:rgba(255,255,255,0.9);padding:15px;border:1px solid #999;border-radius:10px;font-family:sans-serif;box-shadow:3px 3px 10px rgba(0,0,0,0.2);';
+    panel.id = 'control-panel';
+    panel.style.cssText = `
+        position:fixed;
+        top:2vh;
+        left:2vw;
+        z-index:9999;
+        background:rgba(255,255,255,0.9);
+        padding:2vh;
+        border-radius:10px;
+        font-family:sans-serif;
+        box-shadow:3px 3px 10px rgba(0,0,0,0.2);
+    `;
+
     panel.innerHTML = '<b style=\"display:block;margin-bottom:10px;border-bottom:1px solid #ccc\">Joint Controls</b>';
 
-    ['q1', 'q2', 'q3'].forEach(joint => {
+    ['q1','q2','q3'].forEach(joint => {
         let div = document.createElement('div');
         div.style.marginBottom = '10px';
-        div.innerHTML = `<label style=\"width:30px;display:inline-block\">${joint.toUpperCase()}:</label> ` +
-                        `<input type=\"range\" min=\"-180\" max=\"180\" value=\"0\" id=\"slider-${joint}\" style=\"vertical-align:middle\"> ` +
-                        `<span id=\"val-${joint}\" style=\"width:40px;display:inline-block\">0°</span>`;
-        
+
+        div.innerHTML =
+            `<label style=\"width:30px;display:inline-block\">${joint.toUpperCase()}:</label>` +
+            `<input type=\"range\" class=\"control-slider\" min=\"-180\" max=\"180\" value=\"0\" id=\"slider-${joint}\">` +
+            `<span id=\"val-${joint}\" style=\"margin-left:8px\">0°</span>`;
+
         let slider = div.querySelector('input');
         slider.oninput = function() {
             window.jointStates[joint] = parseFloat(this.value);
             document.getElementById('val-'+joint).innerText = this.value + '°';
             if (window.updateScene) requestAnimationFrame(window.updateScene);
         };
+
         panel.appendChild(div);
     });
+
     document.body.appendChild(panel);
+
+    // ----------------------
+    // Title (Top Center)
+    // ----------------------
+    let title = document.createElement('div');
+    title.innerHTML = '<b>RRR Three-Joint Robot Arm</b>';
+    title.style.cssText = `
+        position:fixed;
+        top:10px;
+        left:50%;
+        transform:translateX(-50%);
+        font-size:20px;
+        font-family:Arial;
+        color:black;
+        z-index:10000;
+        pointer-events:none;
+    `;
+    document.body.appendChild(title);
+
+    // ----------------------
+    // Footer (Bottom Right)
+    // ----------------------
+    let footer = document.createElement('div');
+    footer.innerHTML = 'Powered by <tt>Asymptote</tt> & <tt>WebGL</tt>';
+    footer.style.cssText = `
+        position:fixed;
+        bottom:10px;
+        right:15px;
+        font-size:12px;
+        font-family:Arial;
+        color:darkblue;
+        z-index:10000;
+        pointer-events:none;
+    `;
+    document.body.appendChild(footer);
+
 });
 ");
 
