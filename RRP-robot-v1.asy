@@ -242,6 +242,9 @@ void attach_coordinates(transform3 T, real length=2)
 }
 
 javascript("
+// 1. Storage for joint states
+window.jointStates = { q1: 0, q2: 0, d3: 0.1 };
+
 // Standard Column-Major Matrix Multiply: C = A * B
 function multiply(A, B) {
     let C = new Array(16).fill(0);
@@ -267,80 +270,33 @@ function apply(M, p) {
     ];
 }
 
-// helper: clamp between 0 and 1
-function clamp(x) {
-    return Math.max(0, Math.min(1, x));
+function getRotationZ(deg) {
+    let rad = deg * Math.PI / 180;
+    let c = Math.cos(rad), s = Math.sin(rad);
+    return [c, s, 0, 0, -s, c, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
 }
 
-// helper: remap interval
-function phase(t, t0, t1) {
-    return clamp((t - t0) / (t1 - t0));
+function getTranslationZ(d) {
+    return [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, d, 1];
 }
-
 
 // Dynamic Joint 1
 window.J1 = function(p, t) {
-
-    let t1 = phase(t, 0.0, 0.33);  // only active in first third
-
-    let angle = 120 * t1 * Math.PI/180;   // reduced from 90 → 120
-    let cosA = Math.cos(angle), sinA = Math.sin(angle);
-
-    // Dynamic Rotation Matrix for Joint 1 (Z-axis)
-    let J1_MOTION = [
-        cosA, sinA, 0, 0,
-       -sinA, cosA, 0, 0,
-        0,    0,    1, 0,
-        0,    0,    0, 1
-    ];
-
-    // Combine: Total = Motion * Static Link Offset
-    let T_final = multiply(window.L0_OFFSET, J1_MOTION);
-    return apply(T_final, p);
+    if(!window.L0_OFFSET) return p;
+    return apply(multiply(window.L0_OFFSET, getRotationZ(window.jointStates.q1)), p);
 };
 
 // Dynamic Joint 2
 window.J2 = function(p, t) {
-    let t2 = phase(t, 0.33, 0.66);  // second phase only
-
-    let angle = 45 * t2 * Math.PI/180;  // reduced angle
-    let cosA = Math.cos(angle), sinA = Math.sin(angle);
-
-    // Dynamic Rotation Matrix for Joint 2 (Z-axis)
-    let J2_MOTION = [
-        cosA, sinA, 0, 0,
-       -sinA, cosA, 0, 0,
-        0,    0,    1, 0,
-        0,    0,    0, 1
-    ];
-
-    // Combine: Total = Motion * Static Link Offset
-    let T_final = multiply(window.L1_OFFSET, J2_MOTION);
-    return apply(T_final, p);
+    if(!window.L1_OFFSET) return p;
+    return apply(multiply(window.L1_OFFSET, getRotationZ(window.jointStates.q2)), p);
 };
 
+// Dynamic Joint 3
 window.J3 = function(p, t) {
-    // 1. Calculate dynamic displacement
-    let t3 = phase(t, 0.66, 1.0);  // final phase
-
-    let d = 0.4 * t3;   // reduced from 1.0 → 0.4
-
-    // 2. Dynamic Translation Matrix for Joint 3 (Z-axis slide)
-    // In Column-Major, the translation vector is at indices 12, 13, 14.
-    let J3_MOTION = [
-        1, 0, 0, 0, // Column 0
-        0, 1, 0, 0, // Column 1
-        0, 0, 1, 0, // Column 2
-        0, 0, d, 1  // Column 3: [tx, ty, tz, 1]
-    ];
-
-    // 3. Combine: Total = Motion * Static Link Offset (L3_OFFSET)
-    // This places the moving prismatic part relative to the end of Link 2.
-    let T_final = multiply(window.L2_OFFSET, J3_MOTION);
-
-    return apply(T_final, p);
+    if(!window.L2_OFFSET) return p;
+    return apply(multiply(window.L2_OFFSET, getTranslationZ(window.jointStates.d3)), p);
 };
-
 ");
 
 void exportToJS(string name, transform3 T) {
@@ -425,7 +381,7 @@ beginTransform("function(x,t){ return J1(x,t); }", 10);
         // we must apply the T_2_3 * L2 to all the verteics in the below beginTransform/endTransform block
         transform3 L2 = L2_b;
 
-       beginTransform("function(x,t){ return J3(x,t); }", 10);
+        beginTransform("function(x,t){ return J3(x,t); }", 10);
 
             transform3 L3_a = joint_p_m(I, 0.1);
             triple p5 = L3_a*O;
@@ -440,11 +396,6 @@ beginTransform("function(x,t){ return J1(x,t); }", 10);
 
 endTransform();
 
-// ==========================================
-// Static 2D Overlay (Title and Credits)
-// ==========================================
-
-
 // After you calculate your L-variables in the script:
 exportToJS("L0_OFFSET", L0);
 exportToJS("L1_OFFSET", L1);
@@ -452,105 +403,50 @@ exportToJS("L2_OFFSET", L2);
 
 
 //---------------------------------------------------
-// Responsive UI with Auto-Loop Trigger
+// Responsive UI with Individual Sliders
 //---------------------------------------------------
 javascript("
-let style = document.createElement('style');
-style.textContent = `
-  /* 1. Direct target of the slider element */
-  .slider {
-    -webkit-appearance: none;
-    width: 80% !important;
-    left: 10% !important;
-    bottom: 5vh !important;    /* Positioned relative to viewport height */
-    height: 6vh !important;    /* Control area size for touch input */
-    background: transparent !important;
-    cursor: pointer;
-    position: absolute;
-    z-index: 1000;
-  }
-
-  /* 2. Responsive Track */
-  .slider::-webkit-slider-runnable-track {
-    width: 100%;
-    height: 1.5vh !important;
-    background: #ddd !important;
-    border-radius: 0.75vh;
-    border: 1px solid #bbb;
-  }
-
-  /* 3. Responsive Thumb (Knob) */
-  .slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    height: 4.5vh !important;
-    width: 4.5vh !important;
-    border-radius: 50%;
-    background: #4CAF50 !important;
-    /* Vertical centering: (1.5vh / 2) - (4.5vh / 2) = -1.5vh */
-    margin-top: -1.5vh !important;
-    box-shadow: 0 0.5vh 1vh rgba(0,0,0,0.3);
-    border: 0.3vh solid white;
-  }
-
-  /* Firefox Compatibility */
-  .slider::-moz-range-track { height: 1.5vh; border-radius: 0.75vh; background: #ddd; }
-  .slider::-moz-range-thumb { height: 4.5vh; width: 4.5vh; background: #4CAF50; border-radius: 50%; border: 0.3vh solid white; }
-`;
-document.head.appendChild(style);
-
-// 4. Auto-play Logic
 window.addEventListener('load', function(){
-    setTimeout(function(){
-        // Dispatches the 'b' key event to toggle the Loop mode in Asymptote's WebGL player
-        document.dispatchEvent(new KeyboardEvent('keydown', {
-            key: 'b',
-            code: 'KeyB',
-            keyCode: 66,
-            which: 66,
-            bubbles: true
-        }));
-    }, 500); // 500ms delay to ensure the player is ready
+    // Hide default Asymptote controls
+    let hide = document.createElement('style');
+    hide.textContent = '.asy-player-controls, #asy-slider { display: none !important; }';
+    document.head.appendChild(hide);
 
-    // ----------------------
-    // Title (Top Center)
-    // ----------------------
+    // 1. Control Panel Container
+    let panel = document.createElement('div');
+    panel.style.cssText = 'position:fixed; top:20px; left:20px; z-index:9999; background:rgba(255,255,255,0.9); padding:15px; border-radius:10px; font-family:sans-serif; box-shadow:0 4px 10px rgba(0,0,0,0.2); width:260px;';
+    panel.innerHTML = '<b style=\"display:block;margin-bottom:10px;border-bottom:1px solid #ddd\">RRP Joint Controls</b>';
+
+    function addControl(id, label, min, max, step, unit) {
+        let container = document.createElement('div');
+        container.style.marginBottom = '12px';
+        container.innerHTML = `<div style=\"display:flex; justify-content:space-between; font-size:13px;\"><label>${label}</label><span id=\"val-${id}\">${window.jointStates[id]}${unit}</span></div>` +
+                            `<input type=\"range\" style=\"width:100%; cursor:pointer;\" min=\"${min}\" max=\"${max}\" step=\"${step}\" value=\"${window.jointStates[id]}\">`;
+        
+        let slider = container.querySelector('input');
+        slider.oninput = function() {
+            window.jointStates[id] = parseFloat(this.value);
+            document.getElementById('val-'+id).innerText = this.value + unit;
+            if(window.updateScene) window.updateScene();
+        };
+        panel.appendChild(container);
+    }
+
+    addControl('q1', 'Joint 1 (Rotation)', -180, 180, 1, '°');
+    addControl('q2', 'Joint 2 (Rotation)', -180, 180, 1, '°');
+    addControl('d3', 'Joint 3 (Prismatic)', 0, 1.5, 0.05, 'm');
+    document.body.appendChild(panel);
+
+    // 2. Title (Top Center)
     let title = document.createElement('div');
     title.innerHTML = '<b>RRP Three-Joint Robot Arm</b>';
-
-    title.style.position = 'absolute';
-    title.style.top = '10px';
-    title.style.left = '50%';
-    title.style.transform = 'translateX(-50%)';
-
-    title.style.fontSize = '20px';
-    title.style.fontFamily = 'Arial, sans-serif';
-    title.style.color = 'black';
-    title.style.zIndex = '2000';
-    title.style.pointerEvents = 'none';
-
+    title.style.cssText = 'position:absolute; top:10px; left:50%; transform:translateX(-50%); font-size:20px; font-family:Arial; color:black; z-index:2000; pointer-events:none;';
     document.body.appendChild(title);
 
-    // ----------------------
-    // Footer (Bottom Right)
-    // ----------------------
+    // 3. Footer (Bottom Right)
     let credit = document.createElement('div');
     credit.innerHTML = 'Powered by <tt>Asymptote</tt> & <tt>WebGL</tt>';
-
-    credit.style.position = 'absolute';
-    credit.style.bottom = '10px';
-    credit.style.right = '15px';
-
-    credit.style.fontSize = '12px';
-    credit.style.fontFamily = 'Arial, sans-serif';
-    credit.style.color = 'darkblue';
-    credit.style.zIndex = '2000';
-    credit.style.pointerEvents = 'none';
-
+    credit.style.cssText = 'position:absolute; bottom:10px; right:15px; font-size:12px; font-family:Arial; color:darkblue; z-index:2000; pointer-events:none;';
     document.body.appendChild(credit);
-
-
-
 });
 ");
-
-
